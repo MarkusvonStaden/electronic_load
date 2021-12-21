@@ -48,12 +48,11 @@ void dac(void)
 
     const static uint16_t mask = 0x0FFF;
     uint16_t data = 4096;
-    const unsigned char value = data && mask;
-
+    char *value = (char *)malloc(sizeof(uint16_t));
+    *value = mask && data;
     while (true)
     {
         i2c_master_write_to_device(I2C_MASTER_NUM, MCP4725_ADDR, &value, 2, portTICK_RATE_MS);
-        // ESP_ERROR_CHECK(mcp4725_write(&value));
         ESP_LOGI(TAG, "Still running");
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
