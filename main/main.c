@@ -26,9 +26,10 @@ static const char *TAG = "i2c-simple-example";
 #define I2C_MASTER_RX_BUF_DISABLE 0  /*!< I2C master doesn't need buffer */
 #define MCP4725_ADDR 0x60
 
-static esp_err_t mcp4725_register_read(uint8_t reg_addr, uint8_t *data, size_t len)
+static esp_err_t mcp4725_write(uint8_t *data, size_t len)
 {
-    return i2c_master_write_read_device(I2C_MASTER_NUM, MCP4725_ADDR, &reg_addr, 1, data, len, I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
+    // return i2c_master_write_read_device(I2C_MASTER_NUM, MCP4725_ADDR, &reg_addr, 1, data, len, I2C_MASTER_TIMEOUT_MS / portTICK_RATE_MS);
+    return i2c_master_write_to_device(I2C_MASTER_NUM, MCP4725_ADDR, data, len, portTICK_RATE_MS);
 }
 
 void dac(void)
@@ -46,13 +47,17 @@ void dac(void)
     i2c_param_config(i2c_master_port, &conf);
     i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 
-    const char byte1 = 0b00001000;
-    const char byte2 = 0b00000000;
+    const char byte1 = 0b00001111;
+    const char byte2 = 0b11111111;
+
+    unsigned char value[2] = (byte1 << 8) || byte2;
 
     uint8_t data[2];
+    data[0] = byte1;
+    data[1] = byte2;
     while (true)
     {
-        ESP_ERROR_CHECK(mcp4725_register_read(MCP4725_ADDR, data, 1));
+        ESP_ERROR_CHECK(mcp4725_write(value, 2));
         ESP_LOGI(TAG, "WHO_AM_I = %X", data[0]);
 
         vTaskDelay(1000 / portTICK_PERIOD_MS);
@@ -61,5 +66,5 @@ void dac(void)
 
 void app_main(void)
 {
-    xTaskCreate(dac, "dac", 1024, NULL, 1, NULL);
+    xTaskCreate(dac, "dac", 2048, NULL, 1, NULL);
 }
