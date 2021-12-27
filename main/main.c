@@ -7,6 +7,7 @@
    CONDITIONS OF ANY KIND, either express or implied.
 */
 #include <stdio.h>
+#include <memory.h>
 #include "freertos/FreeRTOS.h"
 #include "freertos/task.h"
 #include "esp_system.h"
@@ -21,7 +22,7 @@ static const char *TAG = "i2c-simple-example";
 #define I2C_MASTER_SCL_IO GPIO_NUM_6 /*!< GPIO number used for I2C master clock */
 #define I2C_MASTER_SDA_IO GPIO_NUM_7 /*!< GPIO number used for I2C master data  */
 #define I2C_MASTER_NUM 0             /*!< I2C master i2c port number, the number of i2c peripheral interfaces available will depend on the chip */
-#define I2C_MASTER_FREQ_HZ 400000    /*!< I2C master clock frequency */
+#define I2C_MASTER_FREQ_HZ 1000000   /*!< I2C master clock frequency */
 #define I2C_MASTER_TX_BUF_DISABLE 0  /*!< I2C master doesn't need buffer */
 #define I2C_MASTER_RX_BUF_DISABLE 0  /*!< I2C master doesn't need buffer */
 #define MCP4725_ADDR 0x60
@@ -46,16 +47,31 @@ void dac(void)
     i2c_param_config(i2c_master_port, &conf);
     i2c_driver_install(i2c_master_port, conf.mode, I2C_MASTER_RX_BUF_DISABLE, I2C_MASTER_TX_BUF_DISABLE, 0);
 
-    const static uint16_t mask = 0x0FFF;
-    uint16_t data = 4096;
-    char *value = (char *)malloc(sizeof(uint16_t));
-    *value = mask && data;
+    unsigned char data[2];
+
+    unsigned char *value = (unsigned char *)malloc(2 * sizeof(char));
+
     while (true)
     {
-        i2c_master_write_to_device(I2C_MASTER_NUM, MCP4725_ADDR, &value, 2, portTICK_RATE_MS);
-        ESP_LOGI(TAG, "Still running");
+        data[0] = 0b00001000;
+        data[1] = 0x00;
 
-        vTaskDelay(1000 / portTICK_PERIOD_MS);
+        memcpy(value, &data, 2);
+
+        ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, MCP4725_ADDR, value, 2, portTICK_RATE_MS));
+        // ESP_LOGI(TAG, "Still running with value %i", 2 << 4);
+
+        vTaskDelay(50 / portTICK_PERIOD_MS);
+
+        data[0] = 0x00;
+        data[1] = 0x00;
+
+        memcpy(value, &data, 2);
+
+        ESP_ERROR_CHECK(i2c_master_write_to_device(I2C_MASTER_NUM, MCP4725_ADDR, value, 2, portTICK_RATE_MS));
+        // ESP_LOGI(TAG, "Still running with value %i", 2 << 4);
+
+        vTaskDelay(50 / portTICK_PERIOD_MS);
     }
 }
 
