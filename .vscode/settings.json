@@ -13,5 +13,7 @@
     "tuple": "c",
     "type_traits": "c",
     "utility": "c"
-  }
+  },
+  "idf.adapterTargetName": "esp32c3",
+  "idf.portWin": "COM6"
 }
