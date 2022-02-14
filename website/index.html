@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECD - Electronic Load</title>
+  <script src="./index.js"></script>
+  <link rel="stylesheet" href="styles.css" />
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@100;400;500&display=swap" rel="stylesheet" />
+</head>
+
+<body>
+  <h2>Electronic Load by Markus</h2>
+  <div class="container">
+    <div>
+      <div class="settings box">
+        <h4>Einstellungen</h4>
+        <div class="select-wrapper">
+          <select class="select fa fa-angle-down" name="constant-selector" id="constant-selector">
+            <option value="current">Strom</option>
+            <option value="resistance">Widerstand</option>
+            <option value="power">Leistung</option>
+          </select>
+        </div>
+        <input type="number" id="value-input" name="value-input" value="0" min="0" class="value-input" />
+        <div class="value-container">
+          <label for="value-current">Strom</label>
+          <div class="value" id="value-current"></div>
+          <label for="value-voltage">Spannung</label>
+          <div class="value" id="value-voltage"></div>
+          <label for="value-power">Leistung</label>
+          <div class="value" id="value-power"></div>
+        </div>
+      </div>
+      <div class="description box">
+        <h4>Beschreibung</h4>
+        <p>
+          Electronic Load using a DAC and OP-AMP.
+        </p>
+      </div>
+    </div>
+    <div class="chart-container box">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+</body>
+<script src="./chart.js"></script>
+<script src="./chartjs-plugin-datalabels.js"></script>
+<script src="./moment.js"></script>
+
+</html>
