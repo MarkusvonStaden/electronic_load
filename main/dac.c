@@ -1,3 +1,4 @@
+#include "adc.h"
 #include "driver/spi_common.h"
 #include "driver/spi_master.h"
 #include "esp_err.h"
@@ -10,8 +11,10 @@
 
 static const char *TAG = "DAC";
 
-uint16_t data;
-uint8_t  mode = 0;
+int             cal_input_voltage, cal_shunt_voltage;
+static uint16_t data;
+double          value;
+uint8_t         mode;
 
 spi_device_handle_t spi_handle;
 
@@ -43,32 +46,35 @@ void setup_dac(void) {
     ESP_LOGD(TAG, "Device Added to Bus");
 }
 
-void update_dac(float voltage) {
-    data = SPI_SWAP_DATA_TX(((uint16_t)(voltage / 4.096 * 4096)) | (1 << 12), 16);
-    ESP_ERROR_CHECK(spi_device_acquire_bus(spi_handle, portMAX_DELAY));
-    ESP_ERROR_CHECK(spi_device_transmit(spi_handle, &trans));
-    spi_device_release_bus(spi_handle);
-}
-
-void dac_loop(void) {
+void update_hardware(void) {
+    read_adc();
+    float voltage;
     switch (mode) {
         case 0:  // DAC Disabled
-            /* code */
+            data = 0;
             break;
 
         case 1:  // Constant Current
-            /* code */
+            data = SPI_SWAP_DATA_TX(((uint16_t)(value / 4.096 * 4096)) | (1 << 12), 16);
             break;
 
-        case 2:  // Constant Voltage
-            /* code */
+        case 2:  // Constant Power
+            voltage = value / (cal_input_voltage);
+            data = SPI_SWAP_DATA_TX(((uint16_t)(voltage / 4.096 * 4096)) | (1 << 12), 16);
             break;
 
         case 3:  // Constant Resistance
-            /* code */
+            voltage = (cal_input_voltage) / value;
+            ESP_LOGI(TAG, "voltage");
+            data = SPI_SWAP_DATA_TX(((uint16_t)(voltage / 4.096 * 4096)) | (1 << 12), 16);
             break;
 
         default:
+            data = 0;
+            ESP_LOGE(TAG, "Invalid Mode");
             break;
     }
+    ESP_ERROR_CHECK(spi_device_acquire_bus(spi_handle, portMAX_DELAY));
+    ESP_ERROR_CHECK(spi_device_transmit(spi_handle, &trans));
+    spi_device_release_bus(spi_handle);
 }

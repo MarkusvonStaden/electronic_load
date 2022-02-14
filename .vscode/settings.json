@@ -12,8 +12,9 @@
     "regex": "c",
     "tuple": "c",
     "type_traits": "c",
-    "utility": "c"
+    "utility": "c",
+    "freertos.h": "c"
   },
   "idf.adapterTargetName": "esp32c3",
-  "idf.portWin": "COM6"
+  "idf.portWin": "COM11"
 }
